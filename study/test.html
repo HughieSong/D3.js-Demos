@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style lang="">
+    p {
+      /* width: 100px;
+      height: 10px; */
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+</head>
+
+<body>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+  <p>1</p>
+</body>
+<script>
+  d3.selectAll("p").style("background-color", "white");
+
+  // d3.select("body").style("background-color", "black");
+
+  // d3.select("body")
+  //   .selectAll("p")
+  //   .data([4, 8, 15, 16, 23, 42])
+  //   .enter().append("p")
+  //   .text(d => `I’m number${d}!`);
+
+  // var p = d3.select("body")
+  //   .selectAll("p")
+  //   .data([4, 8, 15, 16, 23, 42])
+  //   .text(d => d);
+  // p.enter().append('p').text(d => d)
+  // p.exit().remove()
+
+  // d3.select("body").transition().duration(2000)
+  //   .style("background-color", "red");
+
+  // d3.selectAll("circle").transition()
+  //   .duration(750)
+  //   .delay(function (d, i) { return i * 10; })
+  //   .attr("r", function (d) { return Math.sqrt(d * scale); });
+</script>
+
+</html>

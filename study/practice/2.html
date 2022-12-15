@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<htm lang="en">
+
+  <head>
+    <title>Document</title>
+    <script src="../d3.v7.min.js"></script>
+  </head>
+
+  <body>
+    <svg width="1000" height="800" id="mainsvg" class="svgs"></svg>
+    <script>
+      const data = [
+        { name: 'Xiaoming-1', value: 6 },
+        { name: 'Xiaoming-2', value: 4 },
+        { name: 'Xiaoming-3', value: 8 },
+        { name: 'Xiaoming-4', value: 9 },
+        { name: 'Xiaoming-5', value: 12 },
+        { name: 'Xiaoming-6', value: 16 },
+        { name: 'Xiaoming-7', value: 14 },
+        { name: 'Xiaoming-8', value: 7 },
+        { name: 'Xiaoming-9', value: 7 },
+      ];
+      // 内容区
+      const svg = d3.select('#mainsvg');
+      const width = svg.attr('width');
+      const height = svg.attr('height');
+      const margin = { top: 60, right: 30, bottom: 60, left: 150 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      // 比例尺
+      const xScale = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.value)])// domain([min, max])表示坐标轴取值区间， d3.max(data, d => d.value) 取数据中的最大值
+        .range([0, innerWidth]); // range([min, max]) 表示屏幕空间
+      const yScale = d3.scaleBand()
+        .domain(data.map(d => d.name)) // 取data的name字段
+        .range([0, innerHeight])
+        .padding(0.25) // padding(number) 设置柱子之间的间隔，取值0~1
+
+      console.log('xScale:', xScale(8));
+      console.log('yScale:', yScale('Xiaoming-2'));
+      // 坐标轴
+      const g = svg.append('g').attr('id', 'maingroup')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`);// 创建组
+      const yAxis = d3.axisLeft(yScale) // 定义坐标轴
+        .tickSize(-innerWidth);
+      g.append('g').call(yAxis);// call 坐标轴渲染
+      const xAxis = d3.axisBottom(xScale);
+      g.append('g').call(xAxis).attr('transform', `translate(0, ${innerHeight})`);
+
+      // 柱子
+      data.forEach(d => {
+        g.append('rect')
+          .attr('width', xScale(d.value)) // xScale(d.value) 宽度根据数据生成
+          .attr('height', yScale.bandwidth()) //yScale.bandwidth() 高度由比例尺自动生成
+          .attr('fill', 'green')
+          .attr('opacity', '0.5')
+          .attr('y', yScale(d.name)) // 柱状图每个柱子的位置，按y轴人名放置
+      });
+      // 修改坐标轴label样式
+      d3.selectAll('.tick text').attr('font-size', '2em');
+
+      g.append('text').text('Members of CSCG')
+        .attr('font-size', '3em')
+        .attr('transform', `translate(${innerWidth / 2}, 0)`)
+        .attr('text-anchor', 'middle')
+
+
+    </script>
+  </body>
+</htm>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<htm lang="en">
+
+  <head>
+    <title>Document</title>
+    <script src="../d3.v7.min.js"></script>
+  </head>
+
+  <body>
+    <svg width="1600" height="920" id="mainsvg" class="svgs"></svg>
+    <script>
+      const svg = d3.select('#mainsvg');
+      const width = svg.attr('width');
+      const height = svg.attr('height');
+      const margin = { top: 100, right: 120, bottom: 100, left: 120 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      let xScale = null;
+      let yScale = null;
+      const xAxisLabel = '累计确诊人数（对数）';
+      const yAxisLabel = '新增确诊人数（对数）';
+      let allDates = [];
+      let sequantial = [];
+      let metapop = 0;
+      let aduration = 1000;
+      const xValue = d => Math.log(d['确诊人数'] + 1);
+      const yValue = d => Math.log(d['新增确诊'] + 1);
+      const rValue = d => Math.sqrt(d['感染率'] * 500) * 0.8;
+      const keyHint = '地区'
+
+      const color = {
+        "武汉": "#ff1c12",
+        "黄石": "#de5991",
+        "十堰": "#759AA0",
+        "荆州": "#E69D87",
+        "宜昌": "#be3259",
+        "襄阳": "#EA7E53",
+        "鄂州": "#EEDD78",
+        "荆门": "#9359b1",
+        "孝感": "#47c0d4",
+        "黄冈": "#F49F42",
+        "咸宁": "#AA312C",
+        "恩施州": "#B35E45",
+        "随州": "#4B8E6F",
+        "仙桃": "#ff8603",
+        "天门": "#ffde1d",
+        "潜江": "#1e9d95",
+        "神农架": "#7289AB"
+      }
+      let legend_color = [];
+      let legend_name = [];
+      for (let key in color) {
+        legend_color.push(color[key]);
+        legend_name.push(key);
+      }
+      console.log('legend_color--', legend_color);
+      console.log('legend_name--', legend_name);
+
+      const renderInit = function (data) {
+        // 比例尺
+        xScale = d3.scaleLinear()
+          .domain(d3.extent(data, xValue)) // d3.extent(data, xValue)  等价于 [d3.min(data, xValue), d3.max(data, xValue)]
+          .range([0, innerWidth])
+          .nice();
+
+        yScale = d3.scaleLinear()
+          .domain(d3.extent(data, yValue).reverse())
+          .range([0, innerHeight])
+          .nice();
+
+        // 坐标轴
+        const g = svg.append('g')
+          .attr('transform', `translate(${margin.left}, ${margin.top})`)
+          .attr('id', 'maingroup');
+
+        const yAxis = d3.axisLeft(yScale) // 定义坐标轴
+          .tickSize(-innerWidth)
+          .tickPadding(10);
+        const xAxis = d3.axisBottom(xScale)
+          .tickSize(-innerHeight)
+          .tickPadding(10);
+
+
+        let yAxisGroup = g.append('g').call(yAxis)
+          .attr('id', 'yaxis');
+        yAxisGroup.append('text')
+          .text(yAxisLabel)
+          .attr('fill', '#333333')
+          .attr('x', -innerHeight / 2)
+          .attr('y', -60)
+          .attr('transform', `rotate(-90)`)
+          .attr('text-anchor', 'middle');
+        yAxisGroup.selectAll('.domain').remove();
+
+        let xAxisGroup = g.append('g').call(xAxis)
+          .attr('transform', `translate(${0}, ${innerHeight})`)
+          .attr('id', 'xaxis');
+        xAxisGroup.append('text')
+          .text(xAxisLabel)
+          .attr('fill', '#333333')
+          .attr('font-size', 12)
+          .attr('x', innerWidth / 2)
+          .attr('y', 60);
+        xAxisGroup.selectAll('.domain').remove();
+
+
+        // // 修改坐标轴label样式
+        // d3.selectAll('.tick text').attr('font-size', '2em');
+        // 添加标题
+        g.append('text').text('Members of CSCG')
+          .attr('font-size', '1em')
+          .attr('transform', `translate(${innerWidth / 2}, -20)`)
+          .attr('text-anchor', 'middle');
+
+        // 图例
+        const legend = d3.select('#maingroup').selectAll('.lengend')
+          .data(legend_name)
+          .enter().append('g')
+          .attr('class', 'legend')
+          .attr('transform', (d, i) => `translate(${innerWidth + 10}, ${i * 25 + 300})`);
+        legend.append('rect')
+          .data(legend_name)
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('width', 30)
+          .attr('height', 20)
+          .attr('fill', (d, i) => legend_color[i]);
+        legend.append('text')
+          .data(legend_name)
+          .attr('class', 'legend_text')
+          .attr('x', 40)
+          .attr('y', 16)
+          // .attr('dy', '.5em')
+          .attr('fill', 'black')
+          .attr('text-anchor', 'start')
+          .text((d, i) => legend_name[i]);
+
+      };
+
+
+      const renderUpdate = function (seq, seqIndex) {
+        const g = d3.select('#maingroup');
+        g.selectAll('.date_text').remove();
+        g.append('text').text(allDates[seqIndex])
+          .attr('class', 'date_text')
+          .attr('font-size', 12)
+          .attr('x', 0)
+          .attr('y', -10)
+          // .attr('dy', '.5em')
+          .attr('fill', '#504f4f')
+          .attr('font-size', 12)
+          .attr('text-anchor', 'left')
+
+        // 图元动效
+        let circleUpdates = g.selectAll('circle').data(seq, d => d[keyHint]);
+        let circleEnter = circleUpdates.enter().append('circle')
+          .attr('cx', d => xScale(xValue(d)))
+          .attr('cy', d => yScale(yValue(d)))
+          .attr('r', d => rValue(d))
+          .attr('fill', d => color[d[keyHint]])
+          .attr('opacity', 0.8)
+        circleUpdates.merge(circleEnter)
+          .transition().ease(d3.easeLinear).duration(aduration)
+          .attr('cx', d => xScale(xValue(d)))
+          .attr('cy', d => yScale(yValue(d)))
+          .attr('r', d => rValue(d))
+
+
+        // 文字动效
+        let textUpdates = g.selectAll('.province_text').data(seq, d => d[keyHint]);
+        let textEnter = textUpdates.enter().append('text').text(d => d[keyHint])
+          .attr('class', 'province_text')
+          .attr('x', d => xScale(xValue(d)))
+          .attr('y', d => yScale(yValue(d)))
+          .attr('fill', '#333333')
+        textUpdates.merge(textEnter)
+          .transition().ease(d3.easeLinear).duration(aduration)
+          .attr('x', d => xScale(xValue(d)))
+          .attr('y', d => yScale(yValue(d)))
+      }
+      d3.csv('../../static/data/hubeipop.csv').then(data => {
+        data.forEach(d => {
+          d['人口（万人）'] = +(d['人口（万人）']);
+        })
+        metapop = data;
+        console.log('metapop', metapop);
+
+      });
+      // 散点
+      d3.csv('../../static/data/hubeinxt.csv').then(data => {
+        data = data.filter(d => d[keyHint] !== '总计');
+        data.forEach(d => {
+          d['确诊人数'] = +(d['确诊人数']); // 字符串转化为数字
+          d['新增确诊'] = +(d['新增确诊']);
+          if (d['新增确诊'] < 0) d['新增确诊'] = 0;
+          d['感染率'] = d['确诊人数'] / (metapop.find(x => x[keyHint] === d[keyHint])['人口（万人）']);
+        });
+
+        allDates = Array.from(new Set(data.map(d => d['日期'])));
+        allDates = allDates.sort((a, b) => new Date(a) - new Date(b));
+
+        allDates.forEach(d => { sequantial.push([]) }); // 生成的sequantial是一个二维数组， 元素数 = 天数
+        data.forEach(d => { sequantial[allDates.indexOf(d['日期'])].push(d) }); // 按『日期』检索数据并分组，每个分组的数据作为sequantial的一个元素
+        console.log('allDetes-------', allDates)
+        console.log('sequantial-------', sequantial)
+        renderInit(data)
+
+        let c = 0;
+        let intervalId = setInterval(() => {
+          if (c >= allDates.length - 1) clearInterval(intervalId);
+          console.log(c)
+          renderUpdate(sequantial[c], c)
+          c += 1;
+        }, aduration);
+      });
+
+
+    </script>
+  </body>
+</htm>

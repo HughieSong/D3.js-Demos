@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="../../d3.v7.min.js"></script>
+  <style>
+    #container {
+      width: 50%;
+      height: 50vh;
+      background-color: #ffffff;
+    }
+
+    #container p {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      color: #ffffff;
+      text-align: center;
+      line-height: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <p>0</p>
+    <p>1</p>
+    <p>2</p>
+    <p>3</p>
+    <p>4</p>
+    <p>5</p>
+    <p>6</p>
+    <p>7</p>
+    <p>8</p>
+    <p>9</p>
+  </div>
+  <script>
+    // d3.select("body")
+    // .style("background-color", "black");
+    d3.select("div")
+      .data([12, 14, 16, 18, 20, 22, 24, 26, 28, 30])
+      .enter().append("p")
+      .style("display", "inline-block")
+      .style("color", "#ffffff")
+      .text((d) => d)
+    // 
+    d3.selectAll("p")
+      // .style("background-color", (d, i) => { return i % 2 ? "#000000" : "#999999" });
+      .style("background-color", () => { return "hsl(" + Math.random() * 360 + ",100%,50%)" })
+      .data([12, 14, 16, 18, 20, 22, 24, 26, 28, 30])
+      .style("font-size", (d) => { return `${d}px` })
+  </script>
+</body>
+
+</html>
