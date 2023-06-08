@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Tree</title>
+  <script src="../../static/js/d3.min.js"></script>
+</head>
+
+<body>
+  <svg width="1800" height="920" id="mainsvg" class="svgs"></svg>
+  <script>
+    const svg = d3.select('#mainsvg');
+    const width = +svg.attr('width');
+    const height = +svg.attr('height');
+    let nodes;
+    let simulation;
+    let circles, lines;
+    let links;
+
+    const render_init = function () {
+      lines = svg.selectAll('line').data(links).join('line')
+        .attr('stroke', 'black')
+        .attr('opacity', 0.8)
+        .attr('stroke-width', 0.5);
+
+      circles = svg.selectAll('circle').data(nodes).join('circle')
+        .attr('r', 5)
+        .attr('fill', 'blue')
+    }
+
+    const ticked = function () {
+      lines
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y)
+
+      circles
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+    }
+
+    d3.json('../../static/data/socfb-Caltech36.json').then(data => {
+      console.log(data);
+      links = data.links;
+      nodes = [];
+      for (let i = 0; i < data['#nodes']; i++) {
+        nodes.push({ 'index': i });
+      }
+      console.log(nodes);
+      render_init();
+
+      simulation = d3.forceSimulation(nodes)
+        .force('manybody', d3.forceManyBody().strength(-30))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('link', d3.forceLink(links).strength(0.1).distance(100))
+        .on('tick', ticked)
+    })
+
+  </script>
+</body>
+
+</html>
